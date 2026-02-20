@@ -1,0 +1,113 @@
+:root {
+    --bg: #050505;
+    --fg: #ffffff;
+    --accent: #ff0000; /* Редкий акцент для важности */
+}
+
+* { margin: 0; padding: 0; box-space: border-box; cursor: none; }
+
+body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow-x: hidden;
+    line-height: 1.1;
+}
+
+/* Эффект шума на фоне для текстуры */
+#noise {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    opacity: 0.05;
+    z-index: 9999;
+}
+
+/* Preloader */
+.preloader {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.8s ease;
+}
+
+.loader-text {
+    font-size: 10px;
+    letter-spacing: 5px;
+    font-weight: 900;
+}
+
+main {
+    padding: 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+h1 {
+    font-size: 15vw;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    margin-top: -20px;
+}
+
+.subtitle {
+    font-size: 14px;
+    letter-spacing: 10px;
+    margin-bottom: 10vh;
+}
+
+.bio-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    border-top: 1px solid #333;
+    padding-top: 20px;
+    margin-bottom: 10vh;
+}
+
+.bio-label { font-size: 12px; color: #666; }
+.bio-content {
+    font-size: clamp(20px, 4vw, 40px);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.highlight { color: var(--fg); text-decoration: underline; }
+
+.links { border-top: 1px solid #333; }
+.link-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 0;
+    border-bottom: 1px solid #222;
+}
+
+.label { font-size: 12px; color: #666; }
+.value { font-size: 18px; text-transform: uppercase; text-decoration: none; color: white; transition: 0.3s; }
+.tg-link:hover { color: #888; letter-spacing: 2px; }
+
+footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #444;
+    margin-top: 40px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    main { padding: 20px; }
+    h1 { font-size: 20vw; }
+    .bio-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* Специально для консолей/больших ТВ */
+@media (min-width: 2000px) {
+    .bio-content { font-size: 60px; }
+}
