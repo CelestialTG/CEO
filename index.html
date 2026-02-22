@@ -2,51 +2,92 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CELESTIAL | CEO OF REALITY</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEXUS TG APP</title>
+    <!-- Официальный API Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="preloader" id="preloader">
-        <div class="loader-text">INITIALIZING DIVINE AUTHORITY...</div>
-    </div>
+    <div class="cursor-glow" id="glow"></div>
 
-    <canvas id="noise"></canvas>
+    <main class="main-content">
+        <!-- БАЗА КОНТЕНТА -->
+        <section id="view-mods" class="view-section active">
+            <header class="section-header">
+                <h2>Артефакты</h2>
+                <p>База модификаций</p>
+            </header>
+            
+            <div class="mobile-filters">
+                <input type="text" id="search-input" class="min-input full-width" placeholder="Поиск (напр. Sodium)...">
+                <div class="filter-row">
+                    <select id="type-select" class="min-input"><option value="mod">Моды</option><option value="resourcepack">Текстуры</option><option value="shader">Шейдеры</option></select>
+                    <select id="version-select" class="min-input"><option value="1.21.11">1.21.11</option><option value="1.21.4">1.21.4</option><option value="1.20.1">1.20.1</option></select>
+                </div>
+                <button id="search-btn" class="min-btn full-width accent-bg">Искать в базе</button>
+            </div>
 
-    <main>
-        <section class="hero">
-            <h1 class="reveal-text">CELESTIAL</h1>
-            <p class="subtitle">STATUS: <span class="glitch-static">UNTOUCHABLE</span></p>
+            <div id="results" class="results-grid">
+                <div class="status-message">Ожидание...</div>
+            </div>
+
+            <div class="pagination">
+                <button id="prev-btn" class="min-btn outline" disabled>◄</button>
+                <span id="page-indicator" class="page-info">Стр. 1</span>
+                <button id="next-btn" class="min-btn outline">►</button>
+            </div>
         </section>
 
-        <section class="bio">
-            <div class="bio-grid">
-                <div class="bio-label">OVERVIEW</div>
-                <div class="bio-content">
-                    Я — великий бог <span class="highlight">Celestial</span>. Абсолютно независимый. Невалидируемый. 
-                    Ваши законы, ваши правила и ваше мнение — это шум в системе, который я удаляю одним нажатием. 
-                    Вы все — лишь объекты в моей базе данных, и если вы здесь, значит я позволил вам смотреть на величие. 
-                    Имеешь что-то против? Твое существование — ошибка, которую я исправлю, когда мне станет скучно.
+        <!-- СТУДИЯ СКИНОВ -->
+        <section id="view-skins" class="view-section hidden">
+            <header class="section-header">
+                <h2>Облики</h2>
+                <p>3D Рендер игроков</p>
+            </header>
+            <div class="mobile-filters">
+                <input type="text" id="skin-search-input" class="min-input full-width" placeholder="Никнейм игрока...">
+                <button id="skin-search-btn" class="min-btn full-width accent-bg">Показать 3D</button>
+            </div>
+            <div id="skin-result" class="skin-showcase hidden">
+                <div class="skin-3d-container"><img id="skin-3d-render" src="" alt="Skin"></div>
+                <h3 id="skin-username">НИКНЕЙМ</h3>
+                <div class="skin-actions-mobile">
+                    <a id="btn-download-raw" href="#" target="_blank" class="min-btn outline">Файл (.png)</a>
+                    <a id="btn-download-avatar" href="#" target="_blank" class="min-btn outline">Аватарка</a>
                 </div>
             </div>
         </section>
 
-        <section class="links">
-            <div class="link-item">
-                <span class="label">IDENTITY</span>
-                <span class="value">CONFIDENTIAL [REDACTED]</span>
+        <!-- РАДАР -->
+        <section id="view-radar" class="view-section hidden">
+            <header class="section-header">
+                <h2>Сонар</h2>
+                <p>Статус серверов</p>
+            </header>
+            <div class="mobile-filters">
+                <input type="text" id="radar-input" class="min-input full-width" placeholder="IP (mc.hypixel.net)">
+                <button id="radar-btn" class="min-btn full-width accent-bg">Пинг</button>
             </div>
-            <div class="link-item">
-                <span class="label">COMMUNICATION</span>
-                <a href="https://t.me/share/url?url=tg://settings" target="_blank" class="value tg-link">@celestiaattack</a>
-            </div>
+            <div id="radar-result" class="radar-card hidden"></div>
         </section>
-
-        <footer>
-            <div class="timestamp" id="clock">00:00:00</div>
-            <div class="location">GLOBAL / NON-EXISTENT</div>
-        </footer>
     </main>
+
+    <!-- НИЖНЯЯ НАВИГАЦИЯ (Mobile Bottom Nav) -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-target="view-mods">📦<br>Моды</button>
+        <button class="nav-btn" data-target="view-skins">🎭<br>Скины</button>
+        <button class="nav-btn" data-target="view-radar">📡<br>Радар</button>
+    </nav>
+
+    <!-- МОДАЛКА (На весь экран телефона) -->
+    <div id="project-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="close-modal-btn" class="modal-close-btn">×</button>
+            <div id="modal-body" class="modal-mobile-layout"></div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
