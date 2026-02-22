@@ -7,17 +7,121 @@
     <!-- Официальный API Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800;900&family=Pixelify+Sans:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --neon-green: #39ff14;
+            --neon-purple: #b026ff;
+            --neon-blue: #00f0ff;
+            --glass-bg: rgba(20, 20, 20, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --tg-bg: var(--tg-theme-bg-color, #050505);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: var(--tg-bg); 
+            color: #fff; 
+            overflow-x: hidden; 
+            padding-bottom: 90px;
+        }
+
+        /* Неоновые сферы на фоне */
+        .bg-orbs { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; filter: blur(80px); pointer-events: none; }
+        .orb { position: absolute; border-radius: 50%; animation: float 10s infinite alternate ease-in-out; }
+        .orb-1 { width: 300px; height: 300px; background: var(--neon-purple); top: -50px; left: -50px; opacity: 0.6; }
+        .orb-2 { width: 400px; height: 400px; background: var(--neon-blue); bottom: 100px; right: -100px; animation-delay: -3s; opacity: 0.5; }
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 30px) scale(1.1); } }
+
+        .main-content { padding: 20px; position: relative; z-index: 1; }
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Заголовки */
+        .max-header { text-align: center; margin-bottom: 25px; }
+        .glitch-title { font-size: 2.8rem; font-weight: 900; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: -1px; }
+        .subtitle { font-family: 'Pixelify Sans', cursive; color: var(--neon-green); font-size: 1.2rem; letter-spacing: 3px; margin-top: 5px; }
+
+        /* Фильтры и Инпуты (Стекло) */
+        .mobile-filters { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; }
+        .filter-row { display: flex; gap: 10px; }
+        .filter-row select { flex: 1; width: 100%; }
+        .glass-input { background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; color: #fff; font-size: 1rem; font-family: 'Outfit'; outline: none; transition: 0.3s; }
+        .glass-input:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); }
+        .full-width { width: 100%; }
+
+        /* Неоновые Кнопки */
+        .neon-btn { background: linear-gradient(45deg, var(--neon-purple), #ff007f); color: #fff; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 900; font-family: 'Outfit'; cursor: pointer; text-transform: uppercase; transition: 0.2s; box-shadow: 0 5px 20px rgba(176, 38, 255, 0.4); text-align: center; text-decoration: none; }
+        .neon-btn:active { transform: scale(0.95); }
+        .neon-btn.outline { background: rgba(0,0,0,0.5); border: 2px solid var(--neon-blue); color: var(--neon-blue); box-shadow: none; }
+        .neon-btn.outline:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
+
+        /* Смарт-теги */
+        .smart-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 25px; justify-content: center; }
+        .tag-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 15px; border-radius: 20px; font-family: 'Outfit'; font-weight: 600; font-size: 0.9rem; transition: 0.3s; }
+        .tag-btn.active { background: var(--neon-green); color: #000; border-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
+
+        /* Сетка Карточек */
+        .results-grid { display: flex; flex-direction: column; gap: 15px; }
+        .card { background: var(--glass-bg); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px; border: 1px solid var(--glass-border); position: relative; overflow: hidden; }
+        .card.selected { border-color: var(--neon-green); box-shadow: 0 0 20px rgba(57, 255, 20, 0.2); }
+        .card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--neon-purple); border-radius: 16px 0 0 16px; }
+        .card.selected::before { background: var(--neon-green); }
+        .card-header { display: flex; gap: 15px; align-items: center; margin-bottom: 10px; }
+        .card-header img { width: 50px; height: 50px; border-radius: 10px; background: #000; }
+        .card-header h3 { font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 10px;}
+        .translate-btn { background: none; border: none; font-size: 1.2rem; filter: grayscale(1); transition: 0.3s; cursor: pointer; }
+        .card p { color: #aaa; font-size: 0.9rem; line-height: 1.4; margin-bottom: 15px; }
+        .card-actions { display: flex; gap: 10px; }
+        .card-actions .neon-btn { flex: 1; padding: 12px; font-size: 0.9rem; }
+
+        .status-message { text-align: center; font-size: 1.3rem; font-weight: 900; color: rgba(255,255,255,0.4); padding: 40px 0; letter-spacing: 2px; }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+        .page-info { font-size: 1.2rem; font-weight: 900; color: var(--neon-blue); letter-spacing: 1px; }
+
+        /* Скины Mobile */
+        .skin-showcase { display: flex; flex-direction: column; align-items: center; background: var(--glass-bg); padding: 30px 20px; border-radius: 16px; border: 1px solid var(--glass-border); gap: 20px; }
+        .skin-3d-container { height: 250px; width: 100%; display: flex; justify-content: center; }
+        .skin-3d-container img { height: 100%; object-fit: contain; filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.4)); }
+        .skin-actions-mobile { display: flex; width: 100%; gap: 10px; }
+        .skin-actions-mobile a { flex: 1; text-align: center; font-size: 0.8rem; }
+        #skin-username { font-family: 'Pixelify Sans'; font-size: 2.2rem; color: var(--neon-green); text-align: center; text-shadow: 0 0 15px var(--neon-green); }
+
+        /* Радар Mobile */
+        .radar-card { display: flex; flex-direction: column; align-items: center; text-align: center; background: var(--glass-bg); padding: 30px 20px; border-radius: 16px; border: 1px solid var(--glass-border); gap: 15px; }
+        .radar-status { padding: 5px 15px; border-radius: 20px; font-weight: 900; font-size: 1rem; text-transform: uppercase;}
+        .radar-status.online { background: rgba(57, 255, 20, 0.1); color: var(--neon-green); border: 1px solid var(--neon-green); }
+        .radar-status.offline { background: rgba(255, 0, 127, 0.1); color: #ff007f; border: 1px solid #ff007f; }
+
+        /* НИЖНЯЯ ПАНЕЛЬ (BOTTOM NAV) */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: rgba(5, 5, 5, 0.95); backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-btn { background: none; border: none; color: #666; font-family: 'Outfit'; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s; cursor: pointer; }
+        .nav-btn.active { color: var(--neon-blue); transform: scale(1.1); text-shadow: 0 0 10px var(--neon-blue); }
+
+        /* ВИКИ-МОДАЛКА */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); backdrop-filter: blur(15px); z-index: 1000; overflow-y: auto; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content { padding: 20px; position: relative; padding-bottom: 100px; min-height: 100vh;}
+        .modal-close-btn { position: absolute; top: 15px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; z-index: 10; cursor: pointer;}
+        .modal-mobile-layout img.head-img { width: 80px; height: 80px; border-radius: 15px; margin-bottom: 15px; border: 2px solid var(--neon-purple); }
+        .modal-mobile-layout h2 { font-size: 2rem; margin-bottom: 5px; font-weight: 900;}
+        .modal-mobile-layout .stats { background: rgba(0,0,0,0.5); padding: 15px; border-radius: 12px; margin: 20px 0; border: 1px solid var(--glass-border); }
+        .modal-body-text { color: #ccc; line-height: 1.6; font-size: 1.05rem; }
+        .modal-body-text h1, .modal-body-text h2 { color: var(--neon-green); margin: 20px 0 10px; font-size: 1.5rem; }
+        .modal-body-text img { max-width: 100%; border-radius: 10px; margin: 10px 0; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+    </style>
 </head>
 <body>
-    <!-- Неоновые сферы на фоне -->
     <div class="bg-orbs">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
     </div>
 
     <main class="main-content glass-container">
-        
         <!-- БАЗА АДДОНОВ (BEDROCK) -->
         <section id="view-addons" class="view-section active">
             <header class="max-header">
@@ -34,7 +138,7 @@
                         <option value="resourcepack">Текстуры (.mcpack)</option>
                         <option value="shader">Шейдеры (RenderDragon)</option>
                     </select>
-                    <!-- Список версий теперь ПУСТОЙ, он заполнится сам скриптом! -->
+                    <!-- Динамический список версий -->
                     <select id="version-select" class="glass-input">
                         <option value="1.21.11">Загрузка версий...</option>
                     </select>
@@ -93,10 +197,9 @@
             </div>
             <div id="radar-result" class="radar-card hidden"></div>
         </section>
-
     </main>
 
-    <!-- НИЖНЯЯ ПАНЕЛЬ ТЕЛЕГРАМА -->
+    <!-- НИЖНЯЯ ПАНЕЛЬ -->
     <nav class="bottom-nav">
         <button class="nav-btn active" data-target="view-addons">📦<br>Аддоны</button>
         <button class="nav-btn" data-target="view-skins">🎭<br>Скины</button>
@@ -111,6 +214,263 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.ready();
+
+            if (tg.themeParams.bg_color) {
+                document.documentElement.style.setProperty('--tg-bg', tg.themeParams.bg_color);
+            }
+
+            // УМНАЯ ЗАГРУЗКА ВЕРСИЙ BEDROCK
+            const versionSel = document.getElementById('version-select');
+            async function loadSmartVersions() {
+                try {
+                    const res = await fetch('https://api.modrinth.com/v2/tag/game_version');
+                    const data = await res.json();
+                    
+                    const stableVersions = data.filter(v => 
+                        v.version_type === 'release' && 
+                        (v.version.startsWith('1.20') || v.version.startsWith('1.21') || v.version.startsWith('1.22'))
+                    );
+
+                    versionSel.innerHTML = '';
+                    stableVersions.forEach(v => {
+                        const opt = document.createElement('option');
+                        opt.value = v.version;
+                        opt.innerText = v.version;
+                        versionSel.appendChild(opt);
+                    });
+                    fetchMods();
+                } catch (e) {
+                    versionSel.innerHTML = '<option value="1.21.11">1.21.11</option>'; 
+                    fetchMods();
+                }
+            }
+
+            // НАВИГАЦИЯ
+            const navBtns = document.querySelectorAll('.nav-btn');
+            const sections = document.querySelectorAll('.view-section');
+            navBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tg.HapticFeedback?.impactOccurred('light'); 
+                    navBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    sections.forEach(sec => {
+                        if(sec.id === btn.dataset.target) { sec.classList.remove('hidden'); sec.classList.add('active'); }
+                        else { sec.classList.add('hidden'); sec.classList.remove('active'); }
+                    });
+                });
+            });
+
+            // ПЕРЕМЕННЫЕ
+            let currentPage = 1, limit = 15, currentCategory = "", selectedMods = [];
+            const searchBtn = document.getElementById('search-btn'), searchInput = document.getElementById('search-input');
+            const typeSel = document.getElementById('type-select');
+            const resultsCont = document.getElementById('results'), projectModal = document.getElementById('project-modal');
+
+            // Главная кнопка ТГ (Скачать сборку)
+            if(tg.MainButton) {
+                tg.MainButton.text = "СКАЧАТЬ АДДОНЫ (0)";
+                tg.MainButton.color = "#b026ff"; 
+                tg.MainButton.onClick(() => {
+                    tg.HapticFeedback?.notificationOccurred('success');
+                    downloadAllSelected();
+                });
+            }
+
+            searchBtn.addEventListener('click', () => { tg.HapticFeedback?.impactOccurred('light'); currentPage = 1; fetchMods(); });
+            document.getElementById('prev-btn').addEventListener('click', () => { if(currentPage>1){currentPage--; fetchMods();} });
+            document.getElementById('next-btn').addEventListener('click', () => { currentPage++; fetchMods(); });
+            document.getElementById('close-modal-btn').addEventListener('click', () => projectModal.classList.remove('active'));
+
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    tg.HapticFeedback?.impactOccurred('light');
+                    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+                    if (currentCategory === e.target.dataset.tag) { currentCategory = ""; } 
+                    else { e.target.classList.add('active'); currentCategory = e.target.dataset.tag; }
+                    currentPage = 1; fetchMods();
+                });
+            });
+
+            loadSmartVersions();
+
+            // ПОИСК (ЖЕСТКИЙ ФИЛЬТР BEDROCK)
+            async function fetchMods() {
+                resultsCont.innerHTML = '<div class="status-message">СИНХРОНИЗАЦИЯ...</div>';
+                document.getElementById('page-indicator').innerText = `СТР. ${currentPage}`;
+                document.getElementById('prev-btn').disabled = currentPage === 1;
+
+                try {
+                    // ГЛАВНЫЙ ФИКС: Ограничиваем платформу только Bedrock!
+                    const facets = [
+                        [`versions:${versionSel.value}`], 
+                        [`project_type:${typeSel.value}`],
+                        ["categories:bedrock"] // Отсекаем Fabric/Forge
+                    ];
+                    
+                    if (currentCategory) facets.push([`categories:${currentCategory}`]);
+
+                    const url = new URL('https://api.modrinth.com/v2/search');
+                    url.searchParams.append('query', searchInput.value); 
+                    url.searchParams.append('facets', JSON.stringify(facets));
+                    url.searchParams.append('limit', limit); 
+                    url.searchParams.append('offset', (currentPage - 1) * limit);
+
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    document.getElementById('next-btn').disabled = data.hits.length < limit;
+                    displayResults(data.hits);
+                } catch (err) { resultsCont.innerHTML = '<div class="status-message" style="color:#ff007f;">СБОЙ СЕТИ</div>'; }
+            }
+
+            function displayResults(mods) {
+                resultsCont.innerHTML = '';
+                if(!mods.length) { resultsCont.innerHTML = '<div class="status-message">ПУСТО.</div>'; return; }
+
+                mods.forEach(mod => {
+                    const isSel = selectedMods.some(m => m.id === mod.project_id);
+                    const card = document.createElement('div');
+                    card.className = `card ${isSel ? 'selected' : ''}`;
+                    let shortDesc = mod.description.length > 70 ? mod.description.substring(0, 70) + '...' : mod.description;
+
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <img src="${mod.icon_url || 'https://docs.modrinth.com/img/logo.svg'}">
+                            <h3>${mod.title}</h3>
+                        </div>
+                        <p>${shortDesc}</p>
+                        <div class="card-actions">
+                            <button class="neon-btn outline select-btn">${isSel ? 'УБРАТЬ' : 'В СБОРКУ'}</button>
+                            <button class="neon-btn info-btn">ДЕТАЛИ</button>
+                        </div>
+                    `;
+                    
+                    card.querySelector('.select-btn').addEventListener('click', () => toggleSelection(mod, card));
+                    card.querySelector('.info-btn').addEventListener('click', () => openModal(mod.project_id, mod.icon_url));
+                    resultsCont.appendChild(card);
+                });
+            }
+
+            function toggleSelection(mod, card) {
+                tg.HapticFeedback?.selectionChanged();
+                const idx = selectedMods.findIndex(m => m.id === mod.project_id);
+                const btn = card.querySelector('.select-btn');
+                
+                if(idx === -1) { 
+                    selectedMods.push({id: mod.project_id}); 
+                    card.classList.add('selected'); btn.innerText = 'УБРАТЬ';
+                } else { 
+                    selectedMods.splice(idx, 1); 
+                    card.classList.remove('selected'); btn.innerText = 'В СБОРКУ';
+                }
+                
+                if(tg.MainButton) {
+                    if(selectedMods.length > 0) {
+                        tg.MainButton.text = `СКАЧАТЬ АДДОНЫ (${selectedMods.length})`; tg.MainButton.show();
+                    } else { tg.MainButton.hide(); }
+                }
+            }
+
+            async function downloadAllSelected() {
+                if(tg.MainButton) tg.MainButton.showProgress();
+                for(let i=0; i<selectedMods.length; i++) {
+                    if(tg.MainButton) tg.MainButton.text = `ЗАГРУЗКА: ${i+1}/${selectedMods.length}`;
+                    try {
+                        const url = await getDownloadUrl(selectedMods[i].id);
+                        if(url) { const a = document.createElement('a'); a.href = url; document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+                        await new Promise(r => setTimeout(r, 800)); 
+                    } catch(e) {}
+                }
+                if(tg.MainButton) {
+                    tg.MainButton.hideProgress(); tg.MainButton.text = "УСПЕШНО!";
+                    setTimeout(() => { selectedMods = []; fetchMods(); tg.MainButton.hide(); }, 2000);
+                }
+            }
+
+            async function getDownloadUrl(id) {
+                const res = await fetch(`https://api.modrinth.com/v2/project/${id}/version?game_versions=["${versionSel.value}"]`);
+                const data = await res.json();
+                if(!data.length) return null;
+                return (data[0].files.find(f => f.primary) || data[0].files[0]).url;
+            }
+
+            async function openModal(id, icon) {
+                tg.HapticFeedback?.impactOccurred('light');
+                projectModal.classList.add('active');
+                const modalBody = document.getElementById('modal-body');
+                modalBody.innerHTML = '<div class="status-message">ЗАГРУЗКА...</div>';
+                try {
+                    const data = await (await fetch(`https://api.modrinth.com/v2/project/${id}`)).json();
+                    const bodyHtml = data.body.replace(/^### (.*$)/gim, '<h3>$1</h3>').replace(/^## (.*$)/gim, '<h2>$1</h2>').replace(/^# (.*$)/gim, '<h1>$1</h1>').replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2">').replace(/\n/gim, '<br>');
+                    
+                    modalBody.innerHTML = `
+                        <div class="modal-mobile-layout">
+                            <img src="${icon || 'https://docs.modrinth.com/img/logo.svg'}" class="head-img">
+                            <h2>${data.title} <button id="translate-btn" style="background:none; border:none; font-size:1.5rem; filter:grayscale(1); cursor:pointer;">🌐</button></h2>
+                            <div class="stats">
+                                <p style="color:var(--neon-green); margin-bottom:5px;"><b>Скачиваний:</b> ${data.downloads}</p>
+                                <p style="color:var(--neon-purple)"><b>Обновлен:</b> ${new Date(data.updated).toLocaleDateString()}</p>
+                            </div>
+                            <button class="neon-btn full-width" id="modal-dl" style="margin-bottom: 20px;">СКАЧАТЬ ФАЙЛ</button>
+                            <div class="modal-body-text" id="modal-text">${bodyHtml}</div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('modal-dl').addEventListener('click', async (e) => {
+                        e.target.innerText = 'ПОИСК ФАЙЛА...';
+                        const url = await getDownloadUrl(id);
+                        if(url) { window.location.href = url; e.target.innerText = 'ГОТОВО!'; }
+                    });
+
+                    document.getElementById('translate-btn').addEventListener('click', async (e) => {
+                        const btn = e.target; if(btn.dataset.t === "1") return;
+                        btn.innerText = "⏳";
+                        try {
+                            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ru&dt=t&q=${encodeURIComponent(data.body.substring(0, 1500))}`); 
+                            const transData = await res.json();
+                            document.getElementById('modal-text').innerHTML = transData[0].map(i => i[0]).join('').replace(/\n/gim, '<br>');
+                            btn.innerText = "🇷🇺"; btn.dataset.t = "1"; btn.style.filter = "none";
+                        } catch(err) { btn.innerText = "❌"; }
+                    });
+
+                } catch(e) { modalBody.innerHTML = '<div class="status-message" style="color:#ff007f;">ОШИБКА</div>'; }
+            }
+
+            // РАДАР (BEDROCK ПОРТЫ)
+            document.getElementById('radar-btn').addEventListener('click', async () => {
+                tg.HapticFeedback?.impactOccurred('light');
+                const ip = document.getElementById('radar-input').value.trim();
+                const resBox = document.getElementById('radar-result');
+                if(!ip) return;
+                resBox.classList.remove('hidden'); resBox.innerHTML = '<div class="status-message">ПИНГ...</div>';
+                try {
+                    const data = await (await fetch(`https://api.mcsrvstat.us/bedrock/3/${ip}`)).json();
+                    if(data.online) {
+                        resBox.innerHTML = `
+                            <div class="radar-status online">ONLINE // ${data.players.online}/${data.players.max}</div>
+                            <h3 style="font-size:1.5rem; margin-top:10px;">${ip}</h3>
+                            <p style="color:var(--neon-purple); font-weight:bold;">Версия: ${data.version}</p>
+                        `;
+                    } else resBox.innerHTML = `<div class="radar-status offline">OFFLINE</div><h3 style="margin-top:10px;">${ip}</h3>`;
+                } catch(e) { resBox.innerHTML = '<div class="status-message" style="color:#ff007f;">ОШИБКА</div>'; }
+            });
+
+            // СКИНЫ
+            document.getElementById('skin-search-btn').addEventListener('click', () => {
+                tg.HapticFeedback?.impactOccurred('light');
+                const user = document.getElementById('skin-search-input').value.trim();
+                if(!user) return;
+                document.getElementById('skin-result').classList.remove('hidden');
+                document.getElementById('skin-username').innerText = user.toUpperCase();
+                document.getElementById('btn-download-raw').href = `https://minotar.net/skin/${user}`;
+                document.getElementById('btn-download-avatar').href = `https://minotar.net/helm/${user}/256.png`;
+                document.getElementById('skin-3d-render').src = `https://starlightskins.lunareclipse.studio/render/ultimate/${user}/full?height=300`;
+            });
+        });
+    </script>
 </body>
 </html>
